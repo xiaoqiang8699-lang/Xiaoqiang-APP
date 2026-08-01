@@ -1,56 +1,33 @@
-# Welcome to your Expo app 👋
+# AI 形象重塑（MVP）
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo SDK 54 + Expo Router。完整需求见 [docs/PRD.md](docs/PRD.md)。  
+穿搭评估接口文档见 [docs/outfit_evaluation_api_doc.md](docs/outfit_evaluation_api_doc.md)。
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 启动
 
 ```bash
-npm run reset-project
+npx.cmd expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+手机需安装支持 **SDK 54** 的 Expo Go。
 
-### Other setup steps
+## 真实接口（默认开启）
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+App 默认请求：
 
-## Learn more
+`POST https://dev.aizhitree.com/store/pub/openApi/outfitEvaluate.api`
 
-To learn more about developing your project with Expo, look at the following resources:
+本地选图会压缩后转 **纯 Base64** 上传（Header 带 `apiKey`）。
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+可选环境变量见 [.env.example](.env.example)：
 
-## Join the community
+- `EXPO_PUBLIC_OUTFIT_API_BASE_URL` — 基准地址（本地联调可改 `http://局域网IP:28080`）
+- `EXPO_PUBLIC_OUTFIT_API_KEY` — 鉴权密钥
+- `EXPO_PUBLIC_USE_MOCK_AI=1` — 不走真实接口，用本地 Mock
 
-Join our community of developers creating universal apps.
+改 `.env` 后需重启 Expo。
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 调试开关（Mock 时）
+
+- `EXPO_PUBLIC_FORCE_TONE=aesthetic_buddy` — 强制「贴心好友」语境
+- `EXPO_PUBLIC_FORCE_INVALID=1` — 强制无效图兜底

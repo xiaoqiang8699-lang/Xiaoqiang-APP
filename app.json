@@ -1,23 +1,66 @@
 {
   "expo": {
-    "name": "AppProject",
-    "slug": "AppProject",
+    "name": "AI形象重塑",
+    "slug": "ai-style-reshape",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "appproject",
-    "userInterfaceStyle": "automatic",
+    "scheme": "aistylereshape",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "locales": {
+      "zh": "./locales/zh.json",
+      "zh-Hans": "./locales/zh.json"
+    },
     "ios": {
-      "icon": "./assets/expo.icon"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.zsaos.aistylereshape",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "zh-Hans",
+        "CFBundleAllowMixedLocalizations": true,
+        "CFBundleLocalizations": ["zh-Hans", "zh_CN"],
+        "CFBundleDisplayName": "AI形象重塑",
+        "NSCameraUsageDescription": "需要使用相机拍摄你的今日穿搭，以便进行形象分析。",
+        "NSPhotoLibraryUsageDescription": "需要访问相册以选择穿搭照片，进行形象分析。",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["E174.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          }
+        ]
+      }
     },
     "android": {
+      "package": "com.zsaos.aistylereshape",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FAFAFA",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "output": "static",
@@ -25,18 +68,41 @@
     },
     "plugins": [
       "expo-router",
+      "expo-secure-store",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#FAFAFA"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "需要访问相册以选择穿搭照片，进行形象分析。",
+          "cameraPermission": "需要使用相机拍摄你的今日穿搭，以便进行形象分析。"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "需要使用相机拍摄你的今日穿搭，以便进行形象分析。",
+          "recordAudioAndroid": false
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "privacyPolicyPath": "/legal/privacy",
+      "termsPath": "/legal/terms",
+      "eas": {
+        "projectId": "replace-after-eas-init"
+      }
     }
   }
 }
