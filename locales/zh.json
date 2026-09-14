@@ -5,6 +5,6 @@
     "NSPhotoLibraryAddUsageDescription": "需要将穿搭照片保存到相册时会申请此权限。"
   },
   "android": {
-    "CFBundleDisplayName": "AI形象重塑"
+    "CFBundleDisplayName": "照型"
   }
 }

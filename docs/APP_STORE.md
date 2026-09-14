@@ -32,7 +32,8 @@ npx eas-cli login
 npx eas init
 ```
 
-把生成的 `projectId` 写入 `app.json` → `expo.extra.eas.projectId`。
+`eas init` 会自动写入 `app.json` → `expo.extra.eas.projectId`。  
+**注意：** 在完成 `eas init` 之前，不要手写假的 `projectId`，否则 Expo Go 扫码会因登录校验报 500。
 
 ### 3. 配置生产环境变量
 
