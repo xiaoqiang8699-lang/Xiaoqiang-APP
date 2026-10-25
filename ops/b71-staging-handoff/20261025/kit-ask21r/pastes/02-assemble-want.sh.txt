@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# ask21k 02-assemble-want — after all want-chunks PASS; O_EXCL|O_NOFOLLOW write WANT
+set -euo pipefail
+ROOT="/root/ask21k-host-replace-one"
+RECV="$ROOT/want/_recv"
+DEST="$ROOT/want/ask18z-atomic-install.sh"
+WANT_SHA="115f5724ec9da4942a2ef3c82458d2b486d3c98bf3cb8b71be45b2d9194e29d3"
+N_CHUNKS=17
+die(){ echo "ASK21K_ASSEMBLE_WANT=FAIL reason=$*"; exit 1; }
+[[ "$(id -u)" -eq 0 ]] || die "not_root"
+[[ -d "$RECV" && ! -L "$RECV" ]] || die "recv_missing"
+[[ ! -e "$DEST" ]] || die "dest_already_exists"
+python3 - "$RECV" "$DEST" "$WANT_SHA" "$N_CHUNKS" <<'PY'
+import sys, os, errno, hashlib, base64, pathlib
+recv, dest, want_sha, n = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
+parts = []
+for i in range(n):
+    idx = "%03d" % i
+    p = pathlib.Path(recv) / ("chunk-%s.b64" % idx)
+    if not p.is_file() or p.is_symlink():
+        raise SystemExit("missing_or_symlink_chunk " + str(p))
+    b64 = "".join(p.read_text().split())
+    parts.append(base64.b64decode(b64, validate=True))
+raw = b"".join(parts)
+got = hashlib.sha256(raw).hexdigest()
+if got != want_sha:
+    raise SystemExit("WANT_SHA_MISMATCH want=%s got=%s len=%d" % (want_sha, got, len(raw)))
+flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+try:
+    fd = os.open(dest, flags, 0o700)
+except FileExistsError:
+    raise SystemExit("DEST_EXISTS_EXCL")
+except OSError as e:
+    if e.errno == errno.ELOOP:
+        raise SystemExit("DEST_SYMLINK_NOFOLLOW")
+    raise
+try:
+    nwritten = 0
+    while nwritten < len(raw):
+        nwritten += os.write(fd, raw[nwritten:])
+finally:
+    os.close(fd)
+os.chmod(dest, 0o700)
+got2 = hashlib.sha256(open(dest, "rb").read()).hexdigest()
+if got2 != want_sha:
+    raise SystemExit("POST_WANT_SHA_MISMATCH")
+print("ASK21K_WANT_PATH", dest)
+print("ASK21K_WANT_SHA", got2)
+print("ASK21K_WANT_BYTES", len(raw))
+print("ASK21K_ASSEMBLE_WANT=PASS")
+PY
+[[ $? -eq 0 ]] || die "assemble_python_fail"

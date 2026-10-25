@@ -1,0 +1,3 @@
+ask21r OUT policy: APPEND-ONLY unique evidence logs via create_unique_out.
+Never : > / truncate / unlink / mv-overwrite historical fixed names (01-pre-ro.out etc).
+Exclusive create (bash noclobber). PASS/FAIL grep uses echoed OUT= path.

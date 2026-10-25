@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# ask21r 03-receive-run — APPEND-ONLY unique OUT
+set -euo pipefail
+ROOT="/root/ask21k-host-replace-one"
+SCRIPTS="$ROOT/scripts"
+WANT="/root/ask21k-host-replace-one/want/ask18z-atomic-install.sh"
+OUT=""
+die(){ echo "ASK21K_RECEIVE_RUN=FAIL reason=$*"; exit 1; }
+ensure_out_parent_safe() {
+  local parent="$1"
+  [[ -L "$parent" ]] && { echo "OUT_PARENT_SYMLINK path=$parent"; return 1; }
+  if [[ -e "$parent" ]]; then
+    [[ -d "$parent" ]] || { [[ -p "$parent" ]] && echo "OUT_PARENT_FIFO path=$parent" || echo "OUT_PARENT_NOT_DIR path=$parent"; return 1; }
+  else
+    mkdir -p -m 0700 "$parent" || { echo "OUT_PARENT_MKDIR_FAIL path=$parent"; return 1; }
+  fi
+  [[ -L "$parent" || ! -d "$parent" ]] && { echo "OUT_PARENT_NOT_REAL_DIR path=$parent"; return 1; }
+  return 0
+}
+_append_out_index() {
+  local index="$1" entry="$2"
+  [[ -L "$index" ]] && { echo "OUT_INDEX_SYMLINK path=$index"; return 1; }
+  if [[ -e "$index" ]]; then
+    [[ -p "$index" ]] && { echo "OUT_INDEX_FIFO path=$index"; return 1; }
+    [[ -f "$index" ]] || { echo "OUT_INDEX_NOT_REGULAR path=$index"; return 1; }
+  fi
+  printf '%s\n' "$entry" >> "$index" || { echo "OUT_INDEX_APPEND_FAIL"; return 1; }
+  return 0
+}
+create_unique_out() {
+  local prefix="$1" parent candidate ts rand i
+  parent="$ROOT/out"
+  ensure_out_parent_safe "$parent" || return 1
+  ts=$(date -u +%Y%m%dT%H%M%SZ) || return 1
+  for i in 1 2 3 4 5 6 7 8; do
+    if command -v openssl >/dev/null 2>&1; then rand=$(openssl rand -hex 4) || rand=""; else rand=$(head -c 4 /dev/urandom 2>/dev/null | od -An -tx1 | tr -d ' \n'); fi
+    [[ -n "$rand" ]] || rand="${RANDOM}${i}"
+    candidate="$parent/${prefix}.${ts}.${rand}.out"
+    if ( set -C; : > "$candidate" ) 2>/dev/null; then
+      [[ -L "$candidate" || ! -f "$candidate" ]] && { echo "OUT_EXCL_BAD path=$candidate"; return 1; }
+      OUT="$candidate"
+      _append_out_index "$parent/${prefix}.index" "$OUT" || true
+      echo "OUT_SAFE=ask21r_append_only_exclusive"
+      echo "OUT=$OUT"
+      return 0
+    fi
+  done
+  echo "OUT_EXCL_CREATE_FAIL prefix=$prefix"; return 1
+}
+[[ "$(id -u)" -eq 0 ]] || die "not_root"
+[[ -f "$WANT" && ! -L "$WANT" ]] || die "want_missing"
+got=$(sha256sum "$WANT" | awk '{print $1}')
+[[ "$got" == "115f5724ec9da4942a2ef3c82458d2b486d3c98bf3cb8b71be45b2d9194e29d3" ]] || die "want_sha_mismatch got=$got"
+[[ -f "$SCRIPTS/02-receive-one.sh.txt" ]] || die "missing_receive_script"
+cd "$SCRIPTS"
+export ASK21B_WANT_SRC="$WANT"
+unset ASK21B_WANT_B64 || true
+create_unique_out "03-receive" || die "OUT_SAFE_REFUSE"
+set +e
+bash ./02-receive-one.sh.txt > >(tee -a "$OUT") 2> >(tee -a "$OUT" >&2)
+rc=$?
+set -e
+if [[ "$rc" -ne 0 ]] || ! grep -q 'ASK21B_RECEIVE=PASS' "$OUT"; then
+  echo "ASK21K_RECEIVE_RUN=FAIL rc=$rc"; exit 1
+fi
+echo "ASK21K_RECEIVE_RUN=PASS"
+echo "OUT=$OUT"
